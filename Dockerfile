@@ -1,29 +1,45 @@
-FROM rocker/r-ver:4.3.0
+FROM rocker/shiny:latest
 
-# Install Shiny Server
+# Install system dependencies required by R packages
 RUN apt-get update && apt-get install -y \
-    gdebi-core \
-    wget
+    libcurl4-gnutls-dev \
+    libssl-dev \
+    libxml2-dev \
+    libfontconfig1-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libfreetype6-dev \
+    libpng-dev \
+    libtiff5-dev \
+    libjpeg-dev \
+    libxt-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://download3.rstudio.org/ubuntu-18.04/x86_64/shiny-server-1.5.20.1002-amd64.deb
-RUN gdebi -n shiny-server-1.5.20.1002-amd64.deb
-
-# Copy renv files
-COPY renv.lock renv.lock
-COPY .Rprofile .Rprofile
-COPY renv/activate.R renv/activate.R
-
-# Restore R packages from renv
-RUN R -e "renv::restore()"
-
-# Copy app
-COPY ./ /srv/shiny-server/app
+# Install R packages
+RUN R -e "install.packages(c( \
+    'bs4Dash', \
+    'writexl', \
+    'dplyr', \
+    'DT', \
+    'zip', \
+    'rlang', \
+    'openxlsx', \
+    'shinyjs', \
+    'shinyalert', \
+    'haven', \
+    'googlesheets4' \
+    ), repos='https://cloud.r-project.org/', dependencies=TRUE)"
 
 # Create directory for credentials
 RUN mkdir -p /srv/shiny-server/app/credentials
 
+# Copy your Shiny app
+COPY ./app /srv/shiny-server/app
+
+# Expose Shiny Server port
 EXPOSE 3838
 
-# Decode base64 secret and run Shiny
+# Decode secret and run Shiny Server
 CMD echo $GS4_SA_JSON_BASE64 | base64 -d > /srv/shiny-server/app/credentials/gs4-sa.json && \
     /usr/bin/shiny-server
