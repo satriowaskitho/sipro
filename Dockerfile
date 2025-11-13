@@ -32,14 +32,15 @@ RUN R -e "install.packages(c( \
     ), repos='https://cloud.r-project.org/', dependencies=TRUE)"
 
 # Create directory for credentials
-RUN mkdir -p /srv/shiny-server/app/credentials
+RUN mkdir -p /srv/shiny-server/credentials
 
-# Copy your Shiny app
-COPY ./app /srv/shiny-server/app
+# Copy your Shiny app (app.R and www/ folder)
+COPY app.R /srv/shiny-server/app.R
+COPY www/ /srv/shiny-server/www/
 
 # Expose Shiny Server port
 EXPOSE 3838
 
 # Decode secret and run Shiny Server
-CMD echo $GS4_SA_JSON_BASE64 | base64 -d > /srv/shiny-server/app/credentials/gs4-sa.json && \
+CMD echo $GS4_SA_JSON_BASE64 | base64 -d > /srv/shiny-server/credentials/gs4-sa.json && \
     /usr/bin/shiny-server
