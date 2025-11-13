@@ -13,7 +13,8 @@ library(googlesheets4)
 
 
 # Autentikasi pakai service account format .json
-gs4_auth(path = "/srv/shiny-server/sipro/gs4-sa.json")
+# gs4_auth(path = "/srv/shiny-server/sipro/gs4-sa.json")
+gs4_auth(path = "credentials/gs4-sa.json")
 
 options(scipen = 999)
 R.version.string
